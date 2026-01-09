@@ -53,12 +53,35 @@ export default abstract class FileTree {
    * @returns TreeMap
    */
 
-  public static decompressFrom(chunk: string): TreeMap {
-    const buffer = Buffer.from(chunk, FileTree.encoding);
-    const inflated = inflateSync(buffer).toString();
+  //public static decompressFrom(chunk: string): TreeMap {
+    //const buffer = Buffer.from(chunk, FileTree.encoding);
+    //const inflated = inflateSync(buffer).toString();
 
-    return JSON.parse(inflated);
-  }
+    //return JSON.parse(inflated);
+  //}
+
+  public static decompressFrom(chunk: string): TreeMap {
+    if (!chunk) {
+        throw new Error("Input chunk is empty or undefined");
+    }
+    
+    console.log(`[DEBUG] Length of chunk to decompress: ${chunk.length}`);
+    
+    // Tenta validar se é base64 válido (opcional, mas ajuda)
+    if (chunk.length % 4 !== 0) {
+        console.warn("[WARN] Chunk length is not a multiple of 4. Likely truncated Base64 string.");
+    }
+
+    const buffer = Buffer.from(chunk, FileTree.encoding);
+    
+    try {
+        const inflated = inflateSync(buffer).toString();
+        return JSON.parse(inflated);
+    } catch (error) {
+        console.error("Zlib Error Details:", error);
+        throw new Error("Failed to decompress file tree. The input data might be truncated.");
+    }
+}
 
   /**
    * This method convert an array of paths into a json structure
